@@ -24,7 +24,8 @@ internal static class DownloadTaskDraftFactory
         VideoPage page,
         VideoQuality videoQuality,
         ApplicationSettings settings,
-        DownloadContentSelection content)
+        DownloadContentSelection content,
+        string? subFolder = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(directory);
         ArgumentNullException.ThrowIfNull(video);
@@ -52,7 +53,8 @@ internal static class DownloadTaskDraftFactory
                 sectionCount,
                 page,
                 videoQuality,
-                settings),
+                settings,
+                subFolder),
             Order = page.Order,
             MainTitle = video.Title,
             Name = page.Name,
@@ -102,14 +104,15 @@ internal static class DownloadTaskDraftFactory
         return zoneList.FirstOrDefault(item => item.Id == zone.ParentId)?.Id ?? -1;
     }
 
-    private static string BuildFilePath(
+    internal static string BuildFilePath(
         string directory,
         VideoInfoView video,
         VideoSection section,
         int sectionCount,
         VideoPage page,
         VideoQuality videoQuality,
-        ApplicationSettings settings)
+        ApplicationSettings settings,
+        string? subFolder)
     {
         var sectionName = sectionCount > 1 ? section.Title : string.Empty;
         var fileName = FileNameBuilder.Create(settings.Video.FileNameParts)
@@ -137,7 +140,12 @@ internal static class DownloadTaskDraftFactory
                 break;
         }
 
-        var filePath = Path.Combine(directory, fileName.RelativePath());
+        // 可选子目录（按 UP 主自动分配）；null / 空白时不拼接，保持现有行为。
+        var effectiveDirectory = string.IsNullOrWhiteSpace(subFolder)
+            ? directory
+            : Path.Combine(directory, subFolder.Trim());
+
+        var filePath = Path.Combine(effectiveDirectory, fileName.RelativePath());
         return filePath;
     }
 
