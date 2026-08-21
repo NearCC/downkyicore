@@ -4,6 +4,8 @@ using DownKyi.Application.Desktop;
 using DownKyi.Core.BiliApi.Sign;
 using DownKyi.Core.BiliApi.VideoStream;
 using DownKyi.Core.Settings;
+using DownKyi.Core.Storage.Uploader;
+using DownKyi.Desktop.Services.Uploader;
 using DownKyi.Services.Video;
 using Microsoft.Extensions.Logging;
 
@@ -26,6 +28,8 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
     private readonly IVideoTagProvider _tagProvider;
     private readonly IWbiKeyProvider _wbiKeyProvider;
     private readonly IBilibiliApiClient _client;
+    private readonly DownloadSubFolderResolver _subFolderResolver;
+    private readonly IUploaderAliasRepository _aliasRepository;
 
     public AddToDownloadServiceFactory(
         DownloadTaskAdmissionService admission,
@@ -36,7 +40,9 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
         IWbiKeyProvider wbiKeyProvider,
         IBilibiliApiClient client,
         IAppDialogService dialogService,
-        ILogger<AddToDownloadService> logger)
+        ILogger<AddToDownloadService> logger,
+        DownloadSubFolderResolver subFolderResolver,
+        IUploaderAliasRepository aliasRepository)
     {
         _admission = admission ?? throw new ArgumentNullException(nameof(admission));
         _duplicatePolicy = duplicatePolicy ?? throw new ArgumentNullException(nameof(duplicatePolicy));
@@ -47,6 +53,8 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _subFolderResolver = subFolderResolver ?? throw new ArgumentNullException(nameof(subFolderResolver));
+        _aliasRepository = aliasRepository ?? throw new ArgumentNullException(nameof(aliasRepository));
     }
 
     public IAddToDownloadSession Create(PlayStreamType streamType)
@@ -61,7 +69,9 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
             _wbiKeyProvider,
             _client,
             _dialogService,
-            _logger);
+            _logger,
+            _subFolderResolver,
+            _aliasRepository);
     }
 
 }

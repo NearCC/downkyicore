@@ -1,3 +1,5 @@
+using DownKyi.Core.Storage.Uploader;
+
 namespace DownKyi.Desktop.Services.Uploader;
 
 /// <summary>

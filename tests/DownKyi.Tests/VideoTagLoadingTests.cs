@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Net.Http;
 using DownKyi.Application.Desktop;
 using DownKyi.Application.Downloads;
+using DownKyi.Core.Storage.Uploader;
+using DownKyi.Desktop.Services.Uploader;
 using DownKyi.Domain.Downloads;
 using DownKyi.Domain.Results;
 using DownKyi.Infrastructure.Time;
@@ -295,7 +297,9 @@ public sealed class VideoTagLoadingTests : IDisposable
                 new TestWbiKeyProvider(),
                 client,
                 desktop.Dialogs,
-                new RecordingLogger<AddToDownloadService>());
+                new RecordingLogger<AddToDownloadService>(),
+                new DownloadSubFolderResolver(),
+                new InMemoryUploaderAliasRepository());
         }
 
         public AddToDownloadService Service { get; }

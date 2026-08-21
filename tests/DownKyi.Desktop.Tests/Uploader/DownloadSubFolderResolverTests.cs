@@ -1,3 +1,4 @@
+using DownKyi.Core.Storage.Uploader;
 using DownKyi.Desktop.Services.Uploader;
 
 namespace DownKyi.Desktop.Tests.Uploader;

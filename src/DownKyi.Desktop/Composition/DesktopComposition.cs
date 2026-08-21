@@ -107,6 +107,8 @@ internal static class DesktopComposition
         services.AddSingleton<DownloadDuplicatePolicy>();
         services.AddSingleton<DownloadMovieMetadataBuilder>();
         services.AddSingleton<IAddToDownloadServiceFactory, AddToDownloadServiceFactory>();
+        services.AddSingleton<DownKyi.Core.Storage.Uploader.IUploaderAliasRepository, DownKyi.Core.Storage.Uploader.FileUploaderAliasRepository>();
+        services.AddSingleton<DownKyi.Desktop.Services.Uploader.DownloadSubFolderResolver>();
         services.AddTransient<IVideoDetailWorkflowCoordinator, VideoDetailWorkflowCoordinator>();
         services.AddSingleton<IVideoDetailDownloadCoordinator, VideoDetailDownloadCoordinator>();
         services.AddSingleton<IContentDownloadCoordinator, ContentDownloadCoordinator>();
