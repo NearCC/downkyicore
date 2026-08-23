@@ -136,6 +136,8 @@ internal sealed class AvaloniaDialogService : IAppDialogService
         {
             AppDialog.Alert => (typeof(ViewAlertDialog), typeof(ViewAlertDialogViewModel)),
             AppDialog.DownloadSettings => (typeof(ViewDownloadSetter), typeof(ViewDownloadSetterViewModel)),
+            AppDialog.DownloadSettingsWithSubFolder => (
+                typeof(ViewDownloadSetterWithSubFolder), typeof(ViewDownloadSetterWithSubFolderViewModel)),
             AppDialog.ParsingSelector => (typeof(ViewParsingSelector), typeof(ViewParsingSelectorViewModel)),
             AppDialog.AlreadyDownloaded => (
                 typeof(ViewAlreadyDownloadedDialog),

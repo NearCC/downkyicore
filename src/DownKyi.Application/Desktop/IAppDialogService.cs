@@ -7,7 +7,8 @@ public enum AppDialog
     ParsingSelector = 2,
     AlreadyDownloaded = 3,
     NewVersionAvailable = 4,
-    LegacyUpgrade = 5
+    LegacyUpgrade = 5,
+    DownloadSettingsWithSubFolder = 6
 }
 
 public enum AppDialogOutcome

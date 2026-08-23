@@ -33,10 +33,12 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
     private readonly ILogger<AddToDownloadService> _logger;
     private readonly DownloadSubFolderResolver _subFolderResolver;
     private readonly IUploaderAliasRepository _aliasRepository;
+    private readonly IUploaderRoutingToggleRepository _toggleRepository;
     private IInfoService _videoInfoService = null!;
     private VideoInfoView? _videoInfoView;
     private IList<VideoSection>? _videoSections;
     private DownloadContentSelection _downloadContent = DownloadContentSelection.All;
+    private string? _pendingSubFolder;
 
     public AddToDownloadService(
         PlayStreamType streamType,
@@ -50,7 +52,8 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
         IAppDialogService dialogService,
         ILogger<AddToDownloadService> logger,
         DownloadSubFolderResolver subFolderResolver,
-        IUploaderAliasRepository aliasRepository)
+        IUploaderAliasRepository aliasRepository,
+        IUploaderRoutingToggleRepository toggleRepository)
     {
         _admission = admission ?? throw new ArgumentNullException(nameof(admission));
         _duplicatePolicy = duplicatePolicy ?? throw new ArgumentNullException(nameof(duplicatePolicy));
@@ -60,6 +63,7 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _subFolderResolver = subFolderResolver ?? throw new ArgumentNullException(nameof(subFolderResolver));
         _aliasRepository = aliasRepository ?? throw new ArgumentNullException(nameof(aliasRepository));
+        _toggleRepository = toggleRepository ?? throw new ArgumentNullException(nameof(toggleRepository));
         ArgumentNullException.ThrowIfNull(tagProvider);
         ArgumentNullException.ThrowIfNull(wbiKeyProvider);
         ArgumentNullException.ThrowIfNull(client);
@@ -157,6 +161,7 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
         cancellationToken.ThrowIfCancellationRequested();
         var directory = string.Empty;
         var videoSettings = _settingsStore.Current.Video;
+        _pendingSubFolder = null;
         if (videoSettings.IsUseSaveVideoRootPath == AllowStatus.Yes)
         {
             _downloadContent = DownloadContentSelection.From(videoSettings.Content);
@@ -164,8 +169,11 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
         }
         else
         {
+            var dialog = IsUploaderRoutingEnabled()
+                ? AppDialog.DownloadSettingsWithSubFolder
+                : AppDialog.DownloadSettings;
             var result = await _dialogService.ShowAsync(
-                new AppDialogRequest(AppDialog.DownloadSettings),
+                new AppDialogRequest(dialog),
                 cancellationToken).ConfigureAwait(true);
             if (result.Outcome == AppDialogOutcome.Accepted)
             {
@@ -178,6 +186,7 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
                     GetBoolean(result.Parameters, "downloadDanmaku"),
                     GetBoolean(result.Parameters, "downloadSubtitle"),
                     GetBoolean(result.Parameters, "downloadCover"));
+                _pendingSubFolder = ResolveSubFolderFromDialogResult(result.Parameters);
             }
         }
 
@@ -217,8 +226,9 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
         var settings = _settingsStore.Current;
         var addedCount = 0;
 
-        // 一次性解析子目录：当前按主 UP 主自动分配。后续 UI 阶段会按用户策略切换。
-        var subFolder = ResolveSubFolderFor(_videoInfoView, settings, cancellationToken);
+        // 子目录优先取自 SetDirectory 缓存（用户填的或开关为开时 resolver 算的）。
+        // 开关为关时此值为 null，行为与原版完全一致。
+        var subFolder = _pendingSubFolder;
 
         foreach (var section in _videoSections)
         {
@@ -291,20 +301,47 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
         return parameters.TryGetValue(key, out var value) && value is true;
     }
 
-    private string? ResolveSubFolderFor(
-        VideoInfoView video,
-        ApplicationSettings settings,
-        CancellationToken cancellationToken)
+    private bool IsUploaderRoutingEnabled()
     {
-        // TODO: Phase 7 UI 完成时，根据用户策略（Custom / ByUploader + 别名映射）切换。
-        // 当前阶段：先按主 UP 主解析；别名表为空、Owner 无效时返回 null（保持现有行为）。
-        var aliases = LoadAliasesBestEffort(settings);
+        try
+        {
+            return _toggleRepository.Load().IsEnabled;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private string? ResolveSubFolderFromDialogResult(IReadOnlyDictionary<string, object?> parameters)
+    {
+        if (_videoInfoView == null)
+        {
+            return null;
+        }
+
+        // 用户在弹窗中输入的子目录（空白视为未填）。
+        var rawSubFolder = parameters.TryGetValue("subFolder", out var value) ? value as string : null;
+        var userFolder = string.IsNullOrWhiteSpace(rawSubFolder) ? null : rawSubFolder.Trim();
+
+        var aliases = LoadAliasesBestEffort(_settingsStore.Current);
+
+        // 策略：开关开启时强制按 UP 主解析，用户输入被忽略。
+        // 用户输入留作后续 Custom 策略扩展的占位；当前版本仅按 UP 主。
         var inputs = new ResolverInputs(
             Strategy: UploaderRoutingStrategy.ByUploader,
-            CustomFolder: null,
+            CustomFolder: userFolder,
             ResolvedFolderName: null,
-            OwnerMid: video.UpperMid,
-            OwnerName: video.UpName,
+            OwnerMid: _videoInfoView.UpperMid,
+            OwnerName: _videoInfoView.UpName,
             Aliases: aliases);
         var result = DownloadSubFolderResolver.Resolve(inputs);
         return result.SubFolder.Length == 0 ? null : result.SubFolder;

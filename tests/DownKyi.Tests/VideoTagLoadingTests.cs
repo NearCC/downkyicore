@@ -299,7 +299,8 @@ public sealed class VideoTagLoadingTests : IDisposable
                 desktop.Dialogs,
                 new RecordingLogger<AddToDownloadService>(),
                 new DownloadSubFolderResolver(),
-                new InMemoryUploaderAliasRepository());
+                new InMemoryUploaderAliasRepository(),
+                new InMemoryUploaderRoutingToggleRepository());
         }
 
         public AddToDownloadService Service { get; }

@@ -30,6 +30,7 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
     private readonly IBilibiliApiClient _client;
     private readonly DownloadSubFolderResolver _subFolderResolver;
     private readonly IUploaderAliasRepository _aliasRepository;
+    private readonly IUploaderRoutingToggleRepository _toggleRepository;
 
     public AddToDownloadServiceFactory(
         DownloadTaskAdmissionService admission,
@@ -42,7 +43,8 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
         IAppDialogService dialogService,
         ILogger<AddToDownloadService> logger,
         DownloadSubFolderResolver subFolderResolver,
-        IUploaderAliasRepository aliasRepository)
+        IUploaderAliasRepository aliasRepository,
+        IUploaderRoutingToggleRepository toggleRepository)
     {
         _admission = admission ?? throw new ArgumentNullException(nameof(admission));
         _duplicatePolicy = duplicatePolicy ?? throw new ArgumentNullException(nameof(duplicatePolicy));
@@ -55,6 +57,7 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _subFolderResolver = subFolderResolver ?? throw new ArgumentNullException(nameof(subFolderResolver));
         _aliasRepository = aliasRepository ?? throw new ArgumentNullException(nameof(aliasRepository));
+        _toggleRepository = toggleRepository ?? throw new ArgumentNullException(nameof(toggleRepository));
     }
 
     public IAddToDownloadSession Create(PlayStreamType streamType)
@@ -71,7 +74,8 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
             _dialogService,
             _logger,
             _subFolderResolver,
-            _aliasRepository);
+            _aliasRepository,
+            _toggleRepository);
     }
 
 }
