@@ -85,6 +85,27 @@ public sealed class FileUploaderAliasRepository : IUploaderAliasRepository
         }
     }
 
+    public void Remove(long mid)
+    {
+        if (mid <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(mid), mid, "mid must be > 0.");
+        }
+
+        lock (_gate)
+        {
+            var current = LoadUnsafe();
+            if (!current.ContainsKey(mid))
+            {
+                return;
+            }
+
+            var updated = new Dictionary<long, string>(current);
+            updated.Remove(mid);
+            WriteAtomically(updated);
+        }
+    }
+
     private Dictionary<long, string> LoadUnsafe()
     {
         var path = FilePath;

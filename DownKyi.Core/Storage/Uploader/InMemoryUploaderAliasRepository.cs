@@ -58,4 +58,17 @@ public sealed class InMemoryUploaderAliasRepository : IUploaderAliasRepository
             Aliases[mid] = folderName;
         }
     }
+
+    public void Remove(long mid)
+    {
+        if (mid <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(mid), mid, "mid must be > 0.");
+        }
+
+        lock (_gate)
+        {
+            Aliases.Remove(mid);
+        }
+    }
 }

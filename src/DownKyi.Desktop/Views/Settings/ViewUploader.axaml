@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="DownKyi.Views.Settings.ViewUploader"
              xmlns:vms="clr-namespace:DownKyi.ViewModels.Settings"
+             xmlns:models="clr-namespace:DownKyi.ViewModels.Settings"
              x:DataType="vms:ViewUploaderViewModel">
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="50,0" Orientation="Vertical">
@@ -30,6 +31,76 @@
                 Content="按 UP 主归类"
                 Foreground="{DynamicResource BrushTextDark}"
                 IsChecked="{Binding IsUploaderRoutingEnabled, Mode=TwoWay}" />
+
+            <TextBlock
+                Margin="0,30,0,0"
+                FontSize="14"
+                Foreground="{DynamicResource BrushTextDark}"
+                Text="别名映射（mid → 文件夹名）" />
+
+            <TextBlock
+                Margin="0,4,0,0"
+                FontSize="11"
+                Foreground="{DynamicResource BrushTextDark}"
+                TextWrapping="Wrap">
+                <Run Text="为 UP 主指定固定子目录名；未填写的 UP 主会按昵称归类。" />
+                <LineBreak />
+                <Run Text="别名文件路径：" />
+                <Run Text="{Binding AliasFilePath}" FontFamily="Consolas" />
+            </TextBlock>
+
+            <Grid Margin="0,10,0,0" ColumnDefinitions="120,*,Auto" RowDefinitions="Auto">
+                <TextBox
+                    Grid.Column="0"
+                    Margin="0,0,8,0"
+                    PlaceholderText="mid（数字）"
+                    Text="{Binding NewMid, Mode=TwoWay}" />
+                <TextBox
+                    Grid.Column="1"
+                    Margin="0,0,8,0"
+                    PlaceholderText="文件夹名"
+                    Text="{Binding NewFolderName, Mode=TwoWay}" />
+                <Button
+                    Grid.Column="2"
+                    Command="{Binding AddAliasCommand}"
+                    Content="添加" />
+            </Grid>
+
+            <Border
+                Margin="0,10,0,0"
+                BorderBrush="Gray"
+                BorderThickness="1"
+                MinHeight="120">
+                <DataGrid
+                    AutoGenerateColumns="False"
+                    CanUserResizeColumns="True"
+                    Foreground="{DynamicResource BrushTextDark}"
+                    HeadersVisibility="Column"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding Aliases}"
+                    SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="160"
+                            Binding="{Binding Mid}"
+                            Header="mid" />
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding FolderName}"
+                            Header="文件夹名" />
+                        <DataGridTemplateColumn Width="80" Header="操作">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate DataType="models:UploaderAliasEntry">
+                                    <Button
+                                        Command="{Binding $parent[DataGrid].((models:ViewUploaderViewModel)DataContext).RemoveAliasCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="删除" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
 
             <StackPanel Margin="10" />
         </StackPanel>

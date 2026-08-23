@@ -31,4 +31,10 @@ public interface IUploaderAliasRepository
     /// <param name="mid">UP 主 mid（必须 > 0）。</param>
     /// <param name="folderName">文件夹名（允许空白，调用方负责消毒）。</param>
     void Upsert(long mid, string folderName);
+
+    /// <summary>
+    /// 删除单条映射。mid 不存在时静默无操作（不抛异常）。
+    /// </summary>
+    /// <param name="mid">要移除的 UP 主 mid。</param>
+    void Remove(long mid);
 }

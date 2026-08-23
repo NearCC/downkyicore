@@ -282,6 +282,75 @@ public sealed class FileUploaderAliasRepositoryTests : IDisposable
     }
 
     [Fact]
+    public void RemoveDeletesExistingEntry()
+    {
+        var repo = CreateRepo();
+        repo.Save(new Dictionary<long, string>
+        {
+            [1] = "one",
+            [2] = "two",
+        });
+
+        repo.Remove(1);
+
+        var loaded = repo.Load();
+        Assert.Single(loaded);
+        Assert.False(loaded.ContainsKey(1));
+        Assert.Equal("two", loaded[2]);
+    }
+
+    [Fact]
+    public void RemoveWhenMidDoesNotExistIsSilentNoOp()
+    {
+        var repo = CreateRepo();
+        repo.Save(new Dictionary<long, string> { [1] = "one" });
+
+        repo.Remove(999);
+
+        var loaded = repo.Load();
+        Assert.Single(loaded);
+        Assert.Equal("one", loaded[1]);
+    }
+
+    [Fact]
+    public void RemoveFromEmptyFileIsSilentNoOp()
+    {
+        var repo = CreateRepo();
+
+        repo.Remove(1);
+
+        Assert.Empty(repo.Load());
+        Assert.False(File.Exists(TestFilePath));
+    }
+
+    [Fact]
+    public void RemoveWhenMidIsZeroOrNegativeThrows()
+    {
+        var repo = CreateRepo();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => repo.Remove(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => repo.Remove(-1));
+    }
+
+    [Fact]
+    public void RemovePersistsAcrossNewRepositoryInstance()
+    {
+        CreateRepo().Save(new Dictionary<long, string>
+        {
+            [42] = "keep",
+            [99] = "drop",
+        });
+
+        CreateRepo().Remove(99);
+
+        var freshRepo = CreateRepo();
+        var loaded = freshRepo.Load();
+        Assert.Single(loaded);
+        Assert.Equal("keep", loaded[42]);
+        Assert.False(loaded.ContainsKey(99));
+    }
+
+    [Fact]
     public void DefaultFilePathUsesConfigDirectory()
     {
         var repo = new FileUploaderAliasRepository();
