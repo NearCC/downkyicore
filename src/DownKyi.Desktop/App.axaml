@@ -54,6 +54,7 @@
         <DataTemplate DataType="settingsVm:ViewVideoViewModel"><settingsViews:ViewVideo /></DataTemplate>
         <DataTemplate DataType="settingsVm:ViewDanmakuViewModel"><settingsViews:ViewDanmaku /></DataTemplate>
         <DataTemplate DataType="settingsVm:ViewAboutViewModel"><settingsViews:ViewAbout /></DataTemplate>
+        <DataTemplate DataType="settingsVm:ViewUploaderViewModel"><settingsViews:ViewUploader /></DataTemplate>
         <DataTemplate DataType="toolboxVm:ViewBiliHelperViewModel"><toolboxViews:ViewBiliHelper /></DataTemplate>
         <DataTemplate DataType="toolboxVm:ViewDelogoViewModel"><toolboxViews:ViewDelogo /></DataTemplate>
         <DataTemplate DataType="toolboxVm:ViewExtractMediaViewModel"><toolboxViews:ViewExtractMedia /></DataTemplate>

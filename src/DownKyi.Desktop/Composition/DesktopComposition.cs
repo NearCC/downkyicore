@@ -108,6 +108,7 @@ internal static class DesktopComposition
         services.AddSingleton<DownloadMovieMetadataBuilder>();
         services.AddSingleton<IAddToDownloadServiceFactory, AddToDownloadServiceFactory>();
         services.AddSingleton<DownKyi.Core.Storage.Uploader.IUploaderAliasRepository, DownKyi.Core.Storage.Uploader.FileUploaderAliasRepository>();
+        services.AddSingleton<DownKyi.Core.Storage.Uploader.IUploaderRoutingToggleRepository, DownKyi.Core.Storage.Uploader.FileUploaderRoutingToggleRepository>();
         services.AddSingleton<DownKyi.Desktop.Services.Uploader.DownloadSubFolderResolver>();
         services.AddTransient<IVideoDetailWorkflowCoordinator, VideoDetailWorkflowCoordinator>();
         services.AddSingleton<IVideoDetailDownloadCoordinator, VideoDetailDownloadCoordinator>();
@@ -185,6 +186,7 @@ internal static class DesktopComposition
         services.AddTransient<ViewVideoViewModel>();
         services.AddTransient<ViewDanmakuViewModel>();
         services.AddTransient<ViewAboutViewModel>();
+        services.AddTransient<ViewUploaderViewModel>();
         services.AddTransient<ViewBiliHelperViewModel>();
         services.AddTransient<ViewDelogoViewModel>();
         services.AddTransient<ViewExtractMediaViewModel>();

@@ -289,6 +289,7 @@ internal sealed class AvaloniaNavigationService : IAppNavigationService, IDispos
             AppRoute.SettingsVideo => typeof(ViewVideoViewModel),
             AppRoute.SettingsDanmaku => typeof(ViewDanmakuViewModel),
             AppRoute.SettingsAbout => typeof(ViewAboutViewModel),
+            AppRoute.SettingsUploader => typeof(ViewUploaderViewModel),
             AppRoute.BiliHelper => typeof(ViewBiliHelperViewModel),
             AppRoute.Delogo => typeof(ViewDelogoViewModel),
             AppRoute.ExtractMedia => typeof(ViewExtractMediaViewModel),

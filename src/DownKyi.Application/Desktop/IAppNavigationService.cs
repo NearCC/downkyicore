@@ -37,6 +37,7 @@ public enum AppRoute
     SettingsVideo = 22,
     SettingsDanmaku = 23,
     SettingsAbout = 24,
+    SettingsUploader = 32,
     BiliHelper = 25,
     Delogo = 26,
     ExtractMedia = 27,
