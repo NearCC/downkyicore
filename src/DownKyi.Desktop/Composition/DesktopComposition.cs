@@ -108,6 +108,7 @@ internal static class DesktopComposition
         services.AddSingleton<DownloadMovieMetadataBuilder>();
         services.AddSingleton<IAddToDownloadServiceFactory, AddToDownloadServiceFactory>();
         services.AddSingleton<DownKyi.Core.Storage.Uploader.IUploaderAliasRepository, DownKyi.Core.Storage.Uploader.FileUploaderAliasRepository>();
+        services.AddSingleton<DownKyi.Core.Storage.Uploader.IUploaderRoutingPreferenceRepository, DownKyi.Core.Storage.Uploader.FileUploaderRoutingPreferenceRepository>();
         services.AddSingleton<DownKyi.Core.Storage.Uploader.IUploaderRoutingToggleRepository, DownKyi.Core.Storage.Uploader.FileUploaderRoutingToggleRepository>();
         services.AddSingleton<DownKyi.Desktop.Services.Uploader.DownloadSubFolderResolver>();
         services.AddTransient<IVideoDetailWorkflowCoordinator, VideoDetailWorkflowCoordinator>();
@@ -200,12 +201,14 @@ internal static class DesktopComposition
     {
         services.AddTransient<ViewAlertDialogViewModel>();
         services.AddTransient<ViewDownloadSetterViewModel>();
+        services.AddTransient<ViewDownloadSetterWithSubFolderViewModel>();
         services.AddTransient<ViewParsingSelectorViewModel>();
         services.AddTransient<ViewAlreadyDownloadedDialogViewModel>();
         services.AddTransient<NewVersionAvailableDialogViewModel>();
         services.AddTransient<ViewUpgradingDialogViewModel>();
         services.AddTransient<ViewAlertDialog>();
         services.AddTransient<ViewDownloadSetter>();
+        services.AddTransient<ViewDownloadSetterWithSubFolder>();
         services.AddTransient<ViewParsingSelector>();
         services.AddTransient<ViewAlreadyDownloadedDialog>();
         services.AddTransient<NewVersionAvailableDialog>();
