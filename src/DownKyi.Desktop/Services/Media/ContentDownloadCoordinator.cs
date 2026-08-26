@@ -112,10 +112,23 @@ internal sealed class ContentDownloadCoordinator : IContentDownloadCoordinator
         }
 
         var addToDownloadSession = _serviceFactory.Create(ToPlayStreamType(selectedItems[0].Kind));
+
+        // 在弹目录窗之前先把第一个视频的 UP 主信息灌给 session，
+        // 避免弹窗拿到空的 mid/name 导致显示"视频没有 UP 主信息"。
+        var firstInfoService = await _infoServiceFactory
+            .CreateAsync(selectedItems[0], cancellationToken)
+            .ConfigureAwait(false);
+        var firstVideoView = firstInfoService.GetVideoView(cancellationToken);
+        if (firstVideoView != null)
+        {
+            addToDownloadSession.SetOwner(firstVideoView.UpperMid, firstVideoView.UpName ?? string.Empty);
+        }
+
         return await DownloadAddCoordinator.AddToDownloadIfDirectorySelectedAsync(
             () => addToDownloadSession.SetDirectory(cancellationToken),
             directory => AddItemsAsync(
                 addToDownloadSession,
+                firstInfoService,
                 selectedItems,
                 directory,
                 cancellationToken),
@@ -124,19 +137,22 @@ internal sealed class ContentDownloadCoordinator : IContentDownloadCoordinator
 
     private Task<int> AddItemsAsync(
         IAddToDownloadSession addToDownloadSession,
-        IReadOnlyList<ContentDownloadItem> items,
+        IInfoService firstInfoService,
+        ContentDownloadItem[] items,
         string directory,
         CancellationToken cancellationToken)
     {
         return Task.Run(async () =>
         {
             var addedCount = 0;
-            foreach (var item in items)
+            for (var index = 0; index < items.Length; index++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var infoService = await _infoServiceFactory
-                    .CreateAsync(item, cancellationToken)
-                    .ConfigureAwait(false);
+                var infoService = index == 0
+                    ? firstInfoService
+                    : await _infoServiceFactory
+                        .CreateAsync(items[index], cancellationToken)
+                        .ConfigureAwait(false);
                 addToDownloadSession.SetVideoInfoService(infoService);
                 addToDownloadSession.GetVideo();
                 await addToDownloadSession

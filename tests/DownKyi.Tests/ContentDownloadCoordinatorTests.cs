@@ -104,7 +104,8 @@ public sealed class ContentDownloadCoordinatorTests
             onlySelected: true,
             cancellation.Token));
 
-        Assert.Equal(1, session.DirectorySelectionCount);
+        // 现在首次 info 创建在 SetDirectory 之前完成；取消时连目录选择都不会发生。
+        Assert.Equal(0, session.DirectorySelectionCount);
         Assert.Equal(0, session.SetInfoCount);
         Assert.Equal(0, session.AddCount);
     }
@@ -147,6 +148,10 @@ public sealed class ContentDownloadCoordinatorTests
         {
             Assert.NotNull(videoInfoService);
             SetInfoCount++;
+        }
+
+        public void SetOwner(long ownerMid, string ownerName)
+        {
         }
 
         public void GetVideo(VideoInfoView videoInfoView, IList<VideoSection> videoSections)
@@ -200,7 +205,11 @@ public sealed class ContentDownloadCoordinatorTests
     {
         public VideoInfoView? GetVideoView(CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException();
+            return new VideoInfoView
+            {
+                UpperMid = 1,
+                UpName = "recording-up"
+            };
         }
 
         public IList<VideoSection>? GetVideoSections(

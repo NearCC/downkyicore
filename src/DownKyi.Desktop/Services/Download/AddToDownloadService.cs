@@ -12,7 +12,6 @@ using DownKyi.Core.BiliApi.VideoStream;
 using DownKyi.Core.Settings;
 using DownKyi.Core.Storage.Uploader;
 using DownKyi.Desktop.Services.Uploader;
-using UploaderRoutingStrategy = DownKyi.Core.Storage.Uploader.UploaderRoutingStrategy;
 using DownKyi.Presentation;
 using DownKyi.Services.Video;
 using DownKyi.Utils;
@@ -33,12 +32,15 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
     private readonly ILogger<AddToDownloadService> _logger;
     private readonly DownloadSubFolderResolver _subFolderResolver;
     private readonly IUploaderAliasRepository _aliasRepository;
+    private readonly SubFolderRouteResolver _subFolderRouteResolver;
     private readonly IUploaderRoutingToggleRepository _toggleRepository;
     private IInfoService _videoInfoService = null!;
     private VideoInfoView? _videoInfoView;
     private IList<VideoSection>? _videoSections;
     private DownloadContentSelection _downloadContent = DownloadContentSelection.All;
     private string? _pendingSubFolder;
+    private long _pendingOwnerMid;
+    private string _pendingOwnerName = string.Empty;
 
     public AddToDownloadService(
         PlayStreamType streamType,
@@ -63,6 +65,7 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _subFolderResolver = subFolderResolver ?? throw new ArgumentNullException(nameof(subFolderResolver));
         _aliasRepository = aliasRepository ?? throw new ArgumentNullException(nameof(aliasRepository));
+        _subFolderRouteResolver = new SubFolderRouteResolver(aliasRepository);
         _toggleRepository = toggleRepository ?? throw new ArgumentNullException(nameof(toggleRepository));
         ArgumentNullException.ThrowIfNull(tagProvider);
         ArgumentNullException.ThrowIfNull(wbiKeyProvider);
@@ -89,6 +92,12 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
     public void SetVideoInfoService(IInfoService videoInfoService)
     {
         _videoInfoService = videoInfoService;
+    }
+
+    public void SetOwner(long ownerMid, string ownerName)
+    {
+        _pendingOwnerMid = ownerMid;
+        _pendingOwnerName = ownerName ?? string.Empty;
     }
 
     public void GetVideo(VideoInfoView videoInfoView, IList<VideoSection> videoSections)
@@ -172,8 +181,19 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
             var dialog = IsUploaderRoutingEnabled()
                 ? AppDialog.DownloadSettingsWithSubFolder
                 : AppDialog.DownloadSettings;
+            // 优先用协调器在 SetDirectory 之前通过 SetOwner 注入的 UP 主信息；
+            // 旧路径（SetDirectory 先于 GetVideo）也不会再看到 "视频没有 UP 主信息" 的误报。
+            var ownerMid = _videoInfoView?.UpperMid ?? _pendingOwnerMid;
+            var ownerName = _videoInfoView?.UpName ?? _pendingOwnerName;
+            _pendingOwnerMid = 0L;
+            _pendingOwnerName = string.Empty;
+            var dialogParameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["ownerMid"] = ownerMid,
+                ["ownerName"] = ownerName,
+            };
             var result = await _dialogService.ShowAsync(
-                new AppDialogRequest(dialog),
+                new AppDialogRequest(dialog, dialogParameters),
                 cancellationToken).ConfigureAwait(true);
             if (result.Outcome == AppDialogOutcome.Accepted)
             {
@@ -323,50 +343,8 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
 
     private string? ResolveSubFolderFromDialogResult(IReadOnlyDictionary<string, object?> parameters)
     {
-        if (_videoInfoView == null)
-        {
-            return null;
-        }
-
-        // 用户在弹窗中输入的子目录（空白视为未填）。
-        var rawSubFolder = parameters.TryGetValue("subFolder", out var value) ? value as string : null;
-        var userFolder = string.IsNullOrWhiteSpace(rawSubFolder) ? null : rawSubFolder.Trim();
-
-        var aliases = LoadAliasesBestEffort(_settingsStore.Current);
-
-        // 策略：开关开启时强制按 UP 主解析，用户输入被忽略。
-        // 用户输入留作后续 Custom 策略扩展的占位；当前版本仅按 UP 主。
-        var inputs = new ResolverInputs(
-            Strategy: UploaderRoutingStrategy.ByUploader,
-            CustomFolder: userFolder,
-            ResolvedFolderName: null,
-            OwnerMid: _videoInfoView.UpperMid,
-            OwnerName: _videoInfoView.UpName,
-            Aliases: aliases);
-        var result = DownloadSubFolderResolver.Resolve(inputs);
-        return result.SubFolder.Length == 0 ? null : result.SubFolder;
-    }
-
-    private IReadOnlyDictionary<long, string> LoadAliasesBestEffort(ApplicationSettings settings)
-    {
-        try
-        {
-            return _aliasRepository.Load();
-        }
-        catch (IOException)
-        {
-            // 别名表损坏也不影响下载主流程，吞掉异常返回空表。
-            return new Dictionary<long, string>();
-        }
-        catch (JsonException)
-        {
-            // 别名表损坏也不影响下载主流程，吞掉异常返回空表。
-            return new Dictionary<long, string>();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // 别名表损坏也不影响下载主流程，吞掉异常返回空表。
-            return new Dictionary<long, string>();
-        }
+        var mid = _videoInfoView?.UpperMid ?? 0L;
+        var name = _videoInfoView?.UpName ?? string.Empty;
+        return _subFolderRouteResolver.ResolveFromDialogResult(parameters, mid, name);
     }
 }

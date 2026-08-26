@@ -545,11 +545,44 @@ public string RootDirectory { get; }
 | 1 | 别名存储 + 仓库（`IUploaderAliasRepository` + 实现 + 测试） | ✅ 完成 | 0 |
 | 2 | 路由偏好存储 + 仓库（`IUploaderRoutingPreferenceRepository` + 实现 + 测试） | ✅ 完成 | 0 |
 | ~~3~~ | ~~B 站 `staff` 解析~~ | ❌ 删除 | — |
-| 3（原 4） | Resolver（`DownloadSubFolderResolver` + 测试） | ⏳ 进行中 | 0 |
-| 4（原 5） | `DownloadTaskDraftFactory` 集成 | 待开始 | 1（`DownloadTaskDraftFactory.cs`） |
-| 5（原 6） | 设置 UI（别名管理页） | 待开始 | 0 |
-| 6（原 7） | 下载对话框 UI（路由面板） | 待开始 | 1（`ViewDownloadSetter.axaml`） |
-| 7（原 8） | 自动模式接线 | 待开始 | 0–1 |
+| 3（原 4） | Resolver（`DownloadSubFolderResolver` + 测试） | ✅ 完成 | 0 |
+| 4（原 5） | `DownloadTaskDraftFactory` 集成 | ✅ 完成 | 1（`DownloadTaskDraftFactory.cs`） |
+| 5（原 6） | 设置 UI：UP 主标签页 + 主开关 + 别名 CRUD | ✅ 完成 | 0 |
+| 6（原 7） | 弹窗分流：原弹窗 vs 新弹窗 `ViewDownloadSetterWithSubFolder` + 入口路由 | ✅ 完成 | 0 |
+| 7（原 8） | 新弹窗内嵌策略面板（Custom / ByUploader 下拉 + 状态文本 + 更新映射按钮） + 修复 SetDirectory/GetVideo 时序 | ✅ 完成 | 4（`IAddToDownloadSession.cs`、`AddToDownloadService.cs`、`VideoDetailDownloadCoordinator.cs`、`ContentDownloadCoordinator.cs`，加 1 个新文件 `SubFolderRouteResolver.cs`） |
+| 8（原 9） | 自动模式接线 | 待开始 | 0–1 |
+
+### Phase 7 的实现细节
+
+与原文档 §"下载对话框：每任务策略"计划一致，但落地点不同：直接在新建的 `ViewDownloadSetterWithSubFolder.axaml` 里改（不引入独立的 `ViewUploaderRoutingPanel` UserControl）。
+
+**新增文件**：
+
+- `src/DownKyi.Desktop/Services/Uploader/SubFolderRouteResolver.cs` —— 从弹窗 result dict + UP 主 mid/name + 别名表算出最终子目录（封装 `LoadAliasesBestEffort` 异常吞咽 + 调用 `DownloadSubFolderResolver.Resolve`）。
+- `tests/DownKyi.Tests/Dialogs/ViewDownloadSetterWithSubFolderViewModelTests.cs`
+
+**修改文件**（动既有文件，但限定在最小范围）：
+
+- `src/DownKyi.Desktop/ViewModels/Dialogs/ViewDownloadSetterWithSubFolderViewModel.cs`
+  - 注入 `IUploaderRoutingPreferenceRepository` + `IUploaderAliasRepository`
+  - 新增属性：`Strategy`（枚举）、`SubFolder`、`ResolutionStatus`、`StatusText`、`StrategyChoices`、`IsByUploader`、`IsCustom`、`IsUpdateAliasEnabled`
+  - 新增命令：`UpdateAliasCommand`（ByUploader 策略下点击 → 把当前 `SubFolder` upsert 到别名表）
+  - `OnDialogOpened`：根据偏好文件读取上次策略；ByUploader 模式自动查别名预填文本框 + 状态；Custom 模式预填上次的 CustomFolder（无则用 UP 主昵称）
+  - `ExecuteDownloadCommand`：返回 `subFolder` + `strategy` 两个参数
+- `src/DownKyi.Desktop/Views/Dialogs/ViewDownloadSetterWithSubFolder.axaml`
+  - 把现有"子目录（可选）"一栏替换为：策略下拉 + 文本框（自适应显示） + 状态提示文字 + 更新映射按钮（仅 ByUploader 显示）
+  - 所有新增文本用中文字面量（避免改 `Default.axaml` 引发 rebase 冲突）
+- `src/DownKyi.Desktop/Services/Download/IAddToDownloadSession.cs`
+  - 加一个 `void SetOwner(long ownerMid, string ownerName)` 方法。配合下面对协调器的修改，解决「`SetDirectory` 先于 `GetVideo` 导致弹窗拿不到 UP 主信息」的问题。
+- `src/DownKyi.Desktop/Services/Download/AddToDownloadService.cs`
+  - 注入新路由解析器 `SubFolderRouteResolver`（构造时由现有 `IUploaderAliasRepository` 组装，避免 DI 改 `DesktopComposition`）
+  - `SetDirectory`：构造 dialogParameters 时优先用 `_pendingOwnerMid/_pendingOwnerName`（协调器注入），避免空 mid/name
+  - `ResolveSubFolderFromDialogResult`：委托给 `_subFolderRouteResolver`，只剩一行调用
+- `src/DownKyi.Desktop/Services/Video/VideoDetailDownloadCoordinator.cs`
+  - `AddAsync` 立刻在 `_serviceFactory.Create` 之后调 `addService.SetOwner(videoInfoView.UpperMid, videoInfoView.UpName)` 把 UP 主信息提前灌给 session。
+- `src/DownKyi.Desktop/Services/Media/ContentDownloadCoordinator.cs`
+  - `AddAsync` 在弹目录窗之前用 `_infoServiceFactory.CreateAsync(selectedItems[0])` 拿到首项的 `VideoInfoView` 并调用 `addService.SetOwner`。
+  - `AddItemsAsync` 签名改为 `ContentDownloadItem[]`（CA1859），并把已构造好的 first info service 直接传给循环，避免重复创建。
 
 ## 风险与未决问题
 

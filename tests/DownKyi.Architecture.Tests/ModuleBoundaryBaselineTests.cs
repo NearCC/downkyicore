@@ -49,7 +49,12 @@ public sealed class ModuleBoundaryBaselineTests
 
     private static readonly HashSet<string> KnownFileTypeMismatches = new(StringComparer.Ordinal);
 
-    private static readonly Dictionary<string, int> KnownOversizedFiles = new(StringComparer.Ordinal);
+    private static readonly Dictionary<string, int> KnownOversizedFiles = new(StringComparer.Ordinal)
+    {
+        // 下载弹窗的子目录策略版本刻意复制了 ViewDownloadSetterViewModel 的全部命令，
+        // 避免修改上游父类以方便 rebase。文件因此超过 500 行阈值。
+        ["src/DownKyi.Desktop/ViewModels/Dialogs/ViewDownloadSetterWithSubFolderViewModel.cs"] = 800,
+    };
 
     [Fact]
     public void CoreHasNoUiOrQrRenderingDependencies()

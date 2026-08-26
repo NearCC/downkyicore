@@ -117,20 +117,64 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="2" Margin="0,30,0,0" ColumnDefinitions="auto,*,auto">
+                <Grid Grid.Row="2" Margin="0,30,0,0" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="auto,*,auto">
                     <TextBlock
+                        Grid.Row="0"
                         Grid.Column="0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         FontSize="12"
                         Foreground="{DynamicResource BrushTextDark}"
-                        Text="子目录（可选）" />
-                    <TextBox
+                        Text="归类方式" />
+                    <ComboBox
+                        Grid.Row="0"
                         Grid.Column="1"
                         Margin="10,0"
                         VerticalAlignment="Center"
-                        Text="{Binding SubFolder, Mode=TwoWay}"
-                        PlaceholderText="按 UP 主归类时此处会被覆盖；留空表示使用上次选择的 Custom 目录" />
+                        HorizontalAlignment="Stretch"
+                        ItemsSource="{Binding StrategyChoices}"
+                        SelectedItem="{Binding Strategy, Mode=TwoWay}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock>
+                                    <Run Text="{Binding}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Margin="0,10,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{DynamicResource BrushTextDark}"
+                        Text="子目录" />
+                    <TextBox
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="10,10,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding SubFolder, Mode=TwoWay}" />
+                    <Button
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Margin="0,10,0,0"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsByUploader}"
+                        Command="{Binding UpdateAliasCommand}"
+                        Content="更新映射" />
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Margin="10,4,0,0"
+                        VerticalAlignment="Top"
+                        FontSize="11"
+                        Foreground="{DynamicResource BrushTextDark}"
+                        Text="{Binding StatusText}"
+                        IsVisible="{Binding IsByUploader}" />
                 </Grid>
 
                 <Grid Grid.Row="3" Margin="0,30,0,0" ColumnDefinitions="auto,75,75,75,75,75,75">

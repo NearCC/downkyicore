@@ -15,6 +15,8 @@ internal interface IAddToDownloadSession
 
     void GetVideo();
 
+    void SetOwner(long ownerMid, string ownerName);
+
     Task ParseVideoAsync(
         IInfoService videoInfoService,
         CancellationToken cancellationToken = default);
