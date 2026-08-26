@@ -234,6 +234,42 @@ public sealed class ViewDownloadSetterWithSubFolderViewModelTests : IDisposable
     }
 
     [Fact]
+    public void EditingSubFolderNotifiesUpdateAliasCommand()
+    {
+        using var settings = CreateSettingsStore();
+        var viewModel = CreateViewModel(settings: settings);
+        viewModel.OnDialogOpened(NewRequest(ownerMid: 5, ownerName: "原昵称"));
+
+        // 刚打开时按 mid/name 预填，所以一开始应该是可执行的。
+        Assert.True(viewModel.UpdateAliasCommand.CanExecute(null));
+
+        // 清空 SubFolder 后必须立刻变成不可执行（命令要随属性变化重新查询）。
+        viewModel.SubFolder = string.Empty;
+        Assert.False(viewModel.UpdateAliasCommand.CanExecute(null));
+
+        viewModel.SubFolder = "  ";
+        Assert.False(viewModel.UpdateAliasCommand.CanExecute(null));
+
+        viewModel.SubFolder = "新名字";
+        Assert.True(viewModel.UpdateAliasCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void SwitchingStrategyNotifiesUpdateAliasCommand()
+    {
+        using var settings = CreateSettingsStore();
+        var aliases = new InMemoryUploaderAliasRepository();
+        aliases.Upsert(1, "原映射");
+        var viewModel = CreateViewModel(aliases: aliases, settings: settings);
+        viewModel.OnDialogOpened(NewRequest(ownerMid: 1, ownerName: "原昵称"));
+
+        Assert.True(viewModel.UpdateAliasCommand.CanExecute(null));
+        viewModel.Strategy = UploaderRoutingStrategy.Custom;
+        // 切到 Custom 后不应再可执行。
+        Assert.False(viewModel.UpdateAliasCommand.CanExecute(null));
+    }
+
+    [Fact]
     public void SwitchingStrategyPersistsPreference()
     {
         using var settings = CreateSettingsStore();

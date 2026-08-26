@@ -196,6 +196,7 @@ internal class ViewDownloadSetterWithSubFolderViewModel : BaseDialogViewModel
             {
                 ApplyStrategyDefaultsOnStrategySwitch();
                 PersistPreference();
+                UpdateAliasCommand.NotifyCanExecuteChanged();
             }
         }
     }
@@ -211,9 +212,13 @@ internal class ViewDownloadSetterWithSubFolderViewModel : BaseDialogViewModel
         get => _subFolder;
         set
         {
-            if (SetProperty(ref _subFolder, value) && Strategy == UploaderRoutingStrategy.Custom)
+            if (SetProperty(ref _subFolder, value))
             {
-                PersistPreference();
+                UpdateAliasCommand.NotifyCanExecuteChanged();
+                if (Strategy == UploaderRoutingStrategy.Custom)
+                {
+                    PersistPreference();
+                }
             }
         }
     }
@@ -231,6 +236,7 @@ internal class ViewDownloadSetterWithSubFolderViewModel : BaseDialogViewModel
                 OnPropertyChanged(nameof(IsByUploader));
                 OnPropertyChanged(nameof(IsCustom));
                 OnPropertyChanged(nameof(IsUpdateAliasEnabled));
+                UpdateAliasCommand.NotifyCanExecuteChanged();
             }
         }
     }
