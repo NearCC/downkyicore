@@ -55,7 +55,8 @@ internal class ViewSettingsViewModel : ViewModelBase
             new() { Id = 1, Title = DictionaryResource.GetString("Network") },
             new() { Id = 2, Title = DictionaryResource.GetString("Video") },
             new() { Id = 3, Title = DictionaryResource.GetString("SettingDanmaku") },
-            new() { Id = 4, Title = DictionaryResource.GetString("AboutAndFeedback") }
+            new() { Id = 4, Title = DictionaryResource.GetString("AboutAndFeedback") },
+            new() { Id = 5, Title = "UP 主" }
         };
 
         #endregion
@@ -113,6 +114,9 @@ internal class ViewSettingsViewModel : ViewModelBase
                 break;
             case 4:
                 Navigation.NavigateRegion(AppNavigationRegion.Settings, AppRoute.SettingsAbout);
+                break;
+            case 5:
+                Navigation.NavigateRegion(AppNavigationRegion.Settings, AppRoute.SettingsUploader);
                 break;
         }
     }

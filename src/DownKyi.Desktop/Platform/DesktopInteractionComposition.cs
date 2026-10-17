@@ -1,4 +1,5 @@
 using DownKyi.Application.Desktop;
+using DownKyi.Composition;
 using DownKyi.ViewModels;
 using DownKyi.ViewModels.Dialogs;
 using DownKyi.ViewModels.DownloadManager;
@@ -24,6 +25,7 @@ internal static class DesktopInteractionComposition
 
         AddRouteViewModels(services);
         AddDialogViewModelsAndViews(services);
+        services.AddUploaderRoutingUi();
         return services;
     }
 

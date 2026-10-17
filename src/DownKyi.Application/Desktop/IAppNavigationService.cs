@@ -42,7 +42,8 @@ public enum AppRoute
     ExtractMedia = 27,
     Archive = 28,
     UserSpaceSeasonsSeries = 29,
-    UserSpaceFavorites = 30
+    UserSpaceFavorites = 30,
+    SettingsUploader = 31
 }
 
 public sealed record AppNavigationRequest(

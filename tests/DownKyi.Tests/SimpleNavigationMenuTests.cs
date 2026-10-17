@@ -11,6 +11,7 @@ public sealed class SimpleNavigationMenuTests
     [InlineData(2, 2L, AppRoute.SettingsVideo)]
     [InlineData(3, 3L, AppRoute.SettingsDanmaku)]
     [InlineData(4, 4L, AppRoute.SettingsAbout)]
+    [InlineData(5, 5L, AppRoute.SettingsUploader)]
     public void SettingsMenuItemNavigatesToExpectedRoute(
         int menuIndex,
         long expectedMenuId,
@@ -18,7 +19,7 @@ public sealed class SimpleNavigationMenuTests
     {
         var navigation = new TestNavigationService();
         using var viewModel = new ViewSettingsViewModel(new TestDesktopInteractionContext(navigation));
-        Assert.Equal(5, viewModel.TabHeaders.Count);
+        Assert.Equal(6, viewModel.TabHeaders.Count);
         var menuItem = viewModel.TabHeaders[menuIndex];
         Assert.Equal(expectedMenuId, menuItem.Id);
 

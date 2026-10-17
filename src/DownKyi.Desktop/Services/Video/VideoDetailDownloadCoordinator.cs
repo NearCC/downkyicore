@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DownKyi.Application.Downloads;
 using DownKyi.Presentation;
 using DownKyi.Services.Download;
+using DownKyi.Services.Uploader;
 
 namespace DownKyi.Services.Video;
 
@@ -52,6 +53,7 @@ internal sealed class VideoDetailDownloadCoordinator : IVideoDetailDownloadCoord
         }
 
         var addService = _serviceFactory.Create(streamType.Value);
+        addService.SetOwnerIfSupported(videoInfoView.UpperMid, videoInfoView.UpName ?? string.Empty);
         var selectedPages = videoSections.SelectMany(section => section.VideoPages)
             .Where(page => isAll || page.IsSelected)
             .Take(2)

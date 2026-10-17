@@ -61,6 +61,26 @@ internal class ViewDownloadSetterViewModel : BaseDialogViewModel
 
     public bool HasSubtitleTracks => SubtitleTracks.Count > 0;
 
+    private object? _extensionContent;
+
+    /// <summary>
+    /// Optional feature content hosted below the subtitle tracks. The owning feature
+    /// keeps its own view model and reads the accepted values after the dialog closes.
+    /// </summary>
+    public object? ExtensionContent
+    {
+        get => _extensionContent;
+        private set
+        {
+            if (SetProperty(ref _extensionContent, value))
+            {
+                OnPropertyChanged(nameof(HasExtensionContent));
+            }
+        }
+    }
+
+    public bool HasExtensionContent => _extensionContent is not null;
+
 
     private string _directory = string.Empty;
 
@@ -201,6 +221,7 @@ internal class ViewDownloadSetterViewModel : BaseDialogViewModel
 
     public override void OnDialogOpened(AppDialogRequest request)
     {
+        ExtensionContent = request.ExtensionContent;
         var discovery = DownloadSettingsDialog.ReadSubtitleDiscovery(request);
         SubtitleTrackDiscoveryStatus = discovery.Status;
         var tracks = discovery.Tracks;

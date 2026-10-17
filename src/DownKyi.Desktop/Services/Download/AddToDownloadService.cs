@@ -25,7 +25,7 @@ namespace DownKyi.Services.Download;
 /// <summary>
 /// Owns one add-to-download session from media selection through queue admission.
 /// </summary>
-internal sealed class AddToDownloadService : IAddToDownloadSession
+internal sealed partial class AddToDownloadService : IAddToDownloadSession
 {
     private readonly DownloadTaskAdmissionService _admission;
     private readonly DownloadMovieMetadataBuilder _metadataBuilder;
@@ -124,13 +124,31 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
                     []);
             }
         }
-        var result = await _dialogService.ShowAsync(
-            DownloadSettingsDialog.CreateRequest(subtitleDiscovery),
-            cancellationToken).ConfigureAwait(true);
+        var request = DownloadSettingsDialog.CreateRequest(subtitleDiscovery);
+        var uploaderRoutingPanel = await TryPrepareUploaderRoutingAsync(cancellationToken)
+            .ConfigureAwait(true);
+        if (uploaderRoutingPanel is not null)
+        {
+            request = request with { ExtensionContent = uploaderRoutingPanel };
+        }
+
+        AppDialogResult result;
+        try
+        {
+            result = await _dialogService.ShowAsync(request, cancellationToken).ConfigureAwait(true);
+        }
+        catch
+        {
+            TryCompleteUploaderRouting(accepted: false);
+            throw;
+        }
+
         if (DownloadSettingsDialog.DecodeResult(result) is not { } dialogSelection)
         {
+            TryCompleteUploaderRouting(accepted: false);
             return DownloadSelectionResult.Canceled;
         }
+        TryCompleteUploaderRouting(accepted: true);
 
         var directory = dialogSelection.Directory;
         var requestedContent = dialogSelection.RequestedContent;
@@ -288,7 +306,7 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
             failedCount > 0 ? DownloadAddStopReason.TaskAdmissionFailed : null);
     }
 
-    private static List<PendingDownload> CreatePendingDownloads(
+    private List<PendingDownload> CreatePendingDownloads(
         string directory,
         IReadOnlyList<FinalizedDownload> finalizedDownloads,
         ApplicationSettings settings)
@@ -296,13 +314,14 @@ internal sealed class AddToDownloadService : IAddToDownloadSession
         var pending = new List<PendingDownload>();
         foreach (var finalizedDownload in finalizedDownloads.Where(download => download.StopReason == null))
         {
+            var downloadDirectory = ResolveUploaderDownloadDirectory(directory, finalizedDownload.Video);
             foreach (var finalizedSection in finalizedDownload.Sections)
             {
                 foreach (var finalizedPage in finalizedSection.Pages)
                 {
                     pending.Add(new PendingDownload(
                         DownloadTaskDraftFactory.Create(
-                            directory,
+                            downloadDirectory,
                             finalizedDownload.Video,
                             finalizedSection.Section,
                             finalizedDownload.Sections.Count,

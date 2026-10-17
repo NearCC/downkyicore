@@ -12,6 +12,7 @@ using DownKyi.Core.BiliApi.Video;
 using DownKyi.Core.BiliApi.VideoStream;
 using DownKyi.Core.Settings;
 using DownKyi.Services.Download;
+using DownKyi.Services.Uploader;
 using DownKyi.Services.Video;
 using Microsoft.Extensions.Logging;
 
@@ -128,6 +129,7 @@ internal sealed class ContentDownloadCoordinator : IContentDownloadCoordinator
         }
 
         var addToDownloadSession = _serviceFactory.Create(ToPlayStreamType(selectedItems[0].Kind));
+        addToDownloadSession.SetOwnerSourceIfSupported(selectedItems[0].Source);
         var flow = await DownloadAddCoordinator.AddToDownloadIfSelectionAcceptedAsync(
             () => addToDownloadSession.SelectDownloadAsync(cancellationToken: cancellationToken),
             selection => AddItemsAsync(

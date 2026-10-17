@@ -82,6 +82,7 @@ internal static class DesktopComposition
         });
         services.AddSingleton<IWbiKeyProvider, WbiKeyProvider>();
         services.AddSingleton<IVideoTagProvider, VideoTagProvider>();
+        services.AddUploaderRouting();
         services.AddTransient<IVideoDetailWorkflowCoordinator, VideoDetailWorkflowCoordinator>();
         services.AddSingleton<IVideoDetailDownloadCoordinator, VideoDetailDownloadCoordinator>();
         services.AddSingleton<IContentInfoServiceFactory, ContentInfoServiceFactory>();

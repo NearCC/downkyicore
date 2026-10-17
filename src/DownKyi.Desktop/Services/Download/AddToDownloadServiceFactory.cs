@@ -4,6 +4,7 @@ using DownKyi.Application.Desktop;
 using DownKyi.Core.BiliApi.Sign;
 using DownKyi.Core.BiliApi.VideoStream;
 using DownKyi.Core.Settings;
+using DownKyi.Services.Uploader;
 using DownKyi.Services.Video;
 using Microsoft.Extensions.Logging;
 
@@ -25,6 +26,7 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
     private readonly IVideoTagProvider _tagProvider;
     private readonly IWbiKeyProvider _wbiKeyProvider;
     private readonly IBilibiliApiClient _client;
+    private readonly IUploaderRoutingServiceFactory _uploaderRoutingFactory;
 
     public AddToDownloadServiceFactory(
         DownloadTaskAdmissionService admission,
@@ -34,7 +36,8 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
         IWbiKeyProvider wbiKeyProvider,
         IBilibiliApiClient client,
         IAppDialogService dialogService,
-        ILogger<AddToDownloadService> logger)
+        ILogger<AddToDownloadService> logger,
+        IUploaderRoutingServiceFactory uploaderRoutingFactory)
     {
         _admission = admission ?? throw new ArgumentNullException(nameof(admission));
         _metadataBuilder = metadataBuilder ?? throw new ArgumentNullException(nameof(metadataBuilder));
@@ -44,11 +47,13 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _uploaderRoutingFactory = uploaderRoutingFactory
+            ?? throw new ArgumentNullException(nameof(uploaderRoutingFactory));
     }
 
     public IAddToDownloadSession Create(PlayStreamType streamType)
     {
-        return new AddToDownloadService(
+        var session = new AddToDownloadService(
             streamType,
             _admission,
             _metadataBuilder,
@@ -58,6 +63,8 @@ internal sealed class AddToDownloadServiceFactory : IAddToDownloadServiceFactory
             _client,
             _dialogService,
             _logger);
+        session.ConfigureUploaderRouting(_uploaderRoutingFactory.Create());
+        return session;
     }
 
 }

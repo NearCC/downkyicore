@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DownKyi.Views.Dialogs.ViewUploaderRoutingPanel"
+             xmlns:vmd="clr-namespace:DownKyi.ViewModels.Dialogs"
+             x:DataType="vmd:UploaderRoutingPanelViewModel">
+    <Grid
+        Margin="0,20,0,0"
+        RowDefinitions="Auto,Auto,Auto"
+        ColumnDefinitions="auto,*,auto">
+        <TextBlock
+            Grid.Row="0"
+            Grid.Column="0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            FontSize="12"
+            Foreground="{DynamicResource BrushTextDark}"
+            Text="归类方式" />
+        <ComboBox
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="10,0"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Center"
+            ItemsSource="{Binding StrategyChoices}"
+            SelectedItem="{Binding Strategy, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock>
+                        <Run Text="{Binding}" />
+                    </TextBlock>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBlock
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="0,10,0,0"
+            VerticalAlignment="Center"
+            FontSize="12"
+            Foreground="{DynamicResource BrushTextDark}"
+            Text="子目录" />
+        <TextBox
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="10,10,0,0"
+            VerticalAlignment="Center"
+            Text="{Binding SubFolder, Mode=TwoWay}" />
+        <Button
+            Grid.Row="1"
+            Grid.Column="2"
+            Margin="0,10,0,0"
+            VerticalAlignment="Center"
+            Command="{Binding UpdateAliasCommand}"
+            Content="更新映射"
+            IsVisible="{Binding IsByUploader}" />
+
+        <TextBlock
+            Grid.Row="2"
+            Grid.Column="1"
+            Margin="10,4,0,0"
+            VerticalAlignment="Top"
+            FontSize="11"
+            Foreground="{DynamicResource BrushTextDark}"
+            IsVisible="{Binding IsByUploader}"
+            Text="{Binding StatusText}" />
+    </Grid>
+</UserControl>

@@ -22,7 +22,8 @@ public enum AppDialogOutcome
 
 public sealed record AppDialogRequest(
     AppDialog Dialog,
-    IReadOnlyDictionary<string, object?>? Parameters = null);
+    IReadOnlyDictionary<string, object?>? Parameters = null,
+    object? ExtensionContent = null);
 
 public sealed record AppDialogResult(
     AppDialogOutcome Outcome,

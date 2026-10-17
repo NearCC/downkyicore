@@ -12,6 +12,8 @@
              xmlns:toolboxViews="using:DownKyi.Views.Toolbox"
              xmlns:userSpaceVm="using:DownKyi.ViewModels.UserSpace"
              xmlns:userSpaceViews="using:DownKyi.Views.UserSpace"
+             xmlns:dialogsVm="using:DownKyi.ViewModels.Dialogs"
+             xmlns:dialogsViews="using:DownKyi.Views.Dialogs"
              x:Class="DownKyi.App">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -54,6 +56,8 @@
         <DataTemplate DataType="settingsVm:ViewVideoViewModel"><settingsViews:ViewVideo /></DataTemplate>
         <DataTemplate DataType="settingsVm:ViewDanmakuViewModel"><settingsViews:ViewDanmaku /></DataTemplate>
         <DataTemplate DataType="settingsVm:ViewAboutViewModel"><settingsViews:ViewAbout /></DataTemplate>
+        <DataTemplate DataType="settingsVm:ViewUploaderViewModel"><settingsViews:ViewUploader /></DataTemplate>
+        <DataTemplate DataType="dialogsVm:UploaderRoutingPanelViewModel"><dialogsViews:ViewUploaderRoutingPanel /></DataTemplate>
         <DataTemplate DataType="toolboxVm:ViewBiliHelperViewModel"><toolboxViews:ViewBiliHelper /></DataTemplate>
         <DataTemplate DataType="toolboxVm:ViewDelogoViewModel"><toolboxViews:ViewDelogo /></DataTemplate>
         <DataTemplate DataType="toolboxVm:ViewExtractMediaViewModel"><toolboxViews:ViewExtractMedia /></DataTemplate>

@@ -36,7 +36,7 @@
             <Grid
                 Grid.Row="1"
                 MinWidth="600"
-                Margin="15,10" RowDefinitions="*,*,*,Auto,*">
+                Margin="15,10" RowDefinitions="*,*,*,Auto,Auto,*">
 
                 <Grid Grid.Row="0" Margin="0,30,0,0" ColumnDefinitions="*,*,*,*,*">
 
@@ -206,7 +206,12 @@
                     </Grid>
                 </Grid>
 
-                <Grid Grid.Row="4" Margin="0,30,0,0" ColumnDefinitions="*,100,100">
+                <ContentControl
+                    Grid.Row="4"
+                    Content="{Binding ExtensionContent}"
+                    IsVisible="{Binding HasExtensionContent}" />
+
+                <Grid Grid.Row="5" Margin="0,30,0,0" ColumnDefinitions="*,100,100">
                     <Button
                         Grid.Column="1"
                         Width="75"
